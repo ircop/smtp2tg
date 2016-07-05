@@ -1,0 +1,15 @@
+[bot]
+token = "227817793:AAFbftkw6uIQGrYPPImC1mOT6UejfcDbAcI"
+
+[receivers]
+"*" = "40832291"
+"test@alert.domain.com" = ["40832291", "123"]
+
+[smtp]
+listen = "0.0.0.0:25"
+name = "alert.domain.com"
+
+[logging]
+#file = "/var/log/smtp2tg.log"
+#file = "./smtp2tg.log"
+debug = true
