@@ -3,7 +3,7 @@ token = "_bot_api_token_"
 
 [receivers]
 "*" = "40832291"
-"test@alert.domain.com" = ["40832291", "123"]
+"test@alert.domain.com" = "40832291"
 
 [smtp]
 listen = "0.0.0.0:25"
