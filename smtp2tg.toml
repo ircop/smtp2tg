@@ -1,5 +1,5 @@
 [bot]
-token = "227817793:AAFbftkw6uIQGrYPPImC1mOT6UejfcDbAcI"
+token = "_bot_api_token_"
 
 [receivers]
 "*" = "40832291"
