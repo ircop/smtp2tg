@@ -86,6 +86,8 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
     
     from = strings.Trim(from, " ")
     to[0] = strings.Trim(to[0], " ")
+    to[0] = strings.Trim(to[0], "<")
+    to[0] = strings.Trim(to[0], ">")
     msg, err := mail.ReadMessage( bytes.NewReader(data))
     if( err != nil ) {
 	log.Printf("[MAIL ERROR]: %s", err.Error())
