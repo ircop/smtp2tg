@@ -117,5 +117,6 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
     }
     
     tgMsg := tgbotapi.NewMessage(i, bodyStr)
+    tgMsg.ParseMode = tgbotapi.ModeMarkdown
     bot.Send(tgMsg)
 }
