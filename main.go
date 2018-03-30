@@ -8,9 +8,9 @@ import (
     "bytes"
     "log"
     "net"
-    "net/mail"
     "gopkg.in/telegram-bot-api.v4"
     "github.com/spf13/viper"
+    "github.com/veqryn/go-email/email"
     "./smtpd"
 )
 
@@ -88,17 +88,13 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
     to[0] = strings.Trim(to[0], " ")
     to[0] = strings.Trim(to[0], "<")
     to[0] = strings.Trim(to[0], ">")
-    msg, err := mail.ReadMessage( bytes.NewReader(data))
+    msg, err := email.ParseMessage(bytes.NewReader(data))
     if( err != nil ) {
 	log.Printf("[MAIL ERROR]: %s", err.Error())
 	return
     }
     subject := msg.Header.Get("Subject")
     log.Printf("Received mail from '%s' for '%s' with subject '%s'", from, to[0], subject)
-    
-    body := new( bytes.Buffer )
-    body.ReadFrom( msg.Body )
-    bodyStr := body.String()
     
     // Find receivers and send to TG
     var tgid string
@@ -108,6 +104,13 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
 	tgid = receivers["*"]
     }
     
+    textMsgs := msg.MessagesContentTypePrefix("text")
+    images := msg.MessagesContentTypePrefix("image")
+    if len(textMsgs) == 0 && len(images) == 0 {
+        log.Printf("mail doesn't contain text or image")
+	    return    
+    }
+
     log.Printf("Relaying message to: %v", tgid)
     
     i, err := strconv.ParseInt(tgid, 10, 64)
@@ -116,7 +119,31 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
 	return
     }
     
-    tgMsg := tgbotapi.NewMessage(i, bodyStr)
-    tgMsg.ParseMode = tgbotapi.ModeMarkdown
-    bot.Send(tgMsg)
+    if len(textMsgs) > 0 {
+        bodyStr := string(textMsgs[0].Body)
+        tgMsg := tgbotapi.NewMessage(i, bodyStr)
+        tgMsg.ParseMode = tgbotapi.ModeMarkdown
+        _, err = bot.Send(tgMsg)
+        if err != nil {
+            log.Printf("[ERROR]: telegram message send: '%s'", err.Error())
+            return
+        }
+    }
+    
+    for _, part := range msg.MessagesContentTypePrefix("image") {
+        _, params, err := part.Header.ContentDisposition()
+        if err != nil {
+            log.Printf("[ERROR]: content disposition parse: '%s'", err.Error())
+            return
+        }
+        text := params["filename"]
+        tgFile := tgbotapi.FileBytes{Name: text, Bytes: part.Body}
+        tgMsg := tgbotapi.NewPhotoUpload(i, tgFile)
+        tgMsg.Caption = text
+        _, err = bot.Send(tgMsg)
+        if err != nil {
+            log.Printf("[ERROR]: telegram photo send: '%s'", err.Error())
+            return
+        }
+    }
 }
