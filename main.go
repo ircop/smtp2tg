@@ -129,7 +129,9 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
             return
         }
     }
-    
+    // TODO Better to use 'sendMediaGroup' to send all attachments as a
+    // single message, but go telegram api has not implemented it yet
+    // https://github.com/go-telegram-bot-api/telegram-bot-api/issues/143    
     for _, part := range msg.MessagesContentTypePrefix("image") {
         _, params, err := part.Header.ContentDisposition()
         if err != nil {
@@ -140,6 +142,8 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
         tgFile := tgbotapi.FileBytes{Name: text, Bytes: part.Body}
         tgMsg := tgbotapi.NewPhotoUpload(i, tgFile)
         tgMsg.Caption = text
+        // It's not a separate message, so disable notification
+        tgMsg.DisableNotification = true
         _, err = bot.Send(tgMsg)
         if err != nil {
             log.Printf("[ERROR]: telegram photo send: '%s'", err.Error())
