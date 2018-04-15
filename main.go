@@ -129,6 +129,7 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) {
             return
         }
     }
+
     // TODO Better to use 'sendMediaGroup' to send all attachments as a
     // single message, but go telegram api has not implemented it yet
     // https://github.com/go-telegram-bot-api/telegram-bot-api/issues/143    
