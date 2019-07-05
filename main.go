@@ -11,7 +11,7 @@ import (
     "gopkg.in/telegram-bot-api.v4"
     "github.com/spf13/viper"
     "github.com/veqryn/go-email/email"
-    "./smtpd"
+    "github.com/ircop/smtp2tg/smtpd"
 )
 
 var receivers map[string]string
